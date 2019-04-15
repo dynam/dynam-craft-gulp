@@ -1,0 +1,13 @@
+/.env
+/.idea
+/vendor
+/artwork
+*.swp
+*.swo
+/web/assets
+/node_modules
+.DS_Store
+/.tmp
+/dist
+/.publish
+
