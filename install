@@ -1,7 +1,5 @@
 #!/bin/sh
 
-composer create-project craftcms/craft .
-
 npm i browserify-shim browsernizr cookieconsent fitvids jquery
 npm i -D @babel/core \
   @babel/preset-env \
