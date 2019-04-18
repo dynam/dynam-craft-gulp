@@ -2,7 +2,6 @@ const { src, dest, parallel, series } = require('gulp');
 const del = require('del');
 const sass = require('gulp-sass');
 const postcss = require('gulp-postcss');
-const watchify = require('watchify');
 const browserify = require('browserify');
 const vinylSource = require('vinyl-source-stream');
 const vinylBuffer = require('vinyl-buffer');
