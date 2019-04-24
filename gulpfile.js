@@ -2,7 +2,6 @@ const { src, dest, parallel, series } = require('gulp');
 const del = require('del');
 const sass = require('gulp-sass');
 const postcss = require('gulp-postcss');
-const watchify = require('watchify');
 const browserify = require('browserify');
 const vinylSource = require('vinyl-source-stream');
 const vinylBuffer = require('vinyl-buffer');
@@ -33,7 +32,7 @@ const buildDir = 'dist';
 const cssDir = 'styles';
 const jsDir = 'js';
 const jsFile = 'main';
-const buildBranch = 'gulp-dist';
+const buildBranch = 'dist';
 
 function clean() {
   return del([`${buildDir}/*`, `!${buildDir}/.git*`]);
@@ -45,7 +44,7 @@ function css() {
     autoprefixer({ browsers: ['last 1 version'] }),
     cssnano()
   ];
-  return src(['./sass/screen.scss', './sass/pdf.scss'])
+  return src(['./sass/screen.scss'])
     .pipe(gulpif(dev, sourcemaps.init()))
     .pipe(sass().on('error', sass.logError))
     .pipe(postcss(plugins))
@@ -82,6 +81,7 @@ function files() {
     'templates/**',
     'modules/**',
     'config/**',
+    '!config/project.yaml',
     'web/**',
     `!web/${jsDir}{,/**}`,
     `!web/${cssDir}/**`,
@@ -154,3 +154,4 @@ exports.default = series(
   revupdate,
   inline
 );
+
