@@ -1,6 +1,5 @@
 /.env
 /.idea
-/vendor
 /artwork
 *.swp
 *.swo
@@ -9,4 +8,4 @@
 .DS_Store
 /.tmp
 /.publish
-/storage
+/config/project.yaml
