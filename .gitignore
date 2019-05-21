@@ -11,3 +11,6 @@
 /.publish
 /storage
 /dist
+/.publish
+/config/project.yaml
+/private
