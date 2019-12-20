@@ -2,6 +2,7 @@ const { src, dest, parallel, series } = require('gulp');
 const del = require('del');
 const sass = require('gulp-sass');
 const postcss = require('gulp-postcss');
+const watchify = require('watchify');
 const browserify = require('browserify');
 const vinylSource = require('vinyl-source-stream');
 const vinylBuffer = require('vinyl-buffer');
@@ -25,6 +26,10 @@ const ghPages = require('@justeat/gulp-gh-pages');
 const revDel = require('rev-del');
 const bro = require('gulp-bro');
 const babelify = require('babelify');
+const webpack = require('webpack-stream');
+const plumber = require('gulp-plumber');
+const named = require('vinyl-named');
+const ManifestPlugin = require('webpack-manifest-plugin');
 
 const dev = process.env.NODE_ENV == 'development';
 
@@ -53,25 +58,107 @@ function css() {
 }
 
 function js() {
-  return src('js/main.js')
+  // Compiles/splits javascript with Webpack. Different configs for dev/production.
+
+  return src(['js/main.js'])
+    .pipe(named())
+    .pipe(plumber())
     .pipe(
-      gulpif(
-        dev,
-        bro({
-          debug: true,
-          transform: [
-            babelify.configure({ presets: ['@babel/preset-env'] })
-          ]
+      gulpif(dev,
+        webpack({
+          output: {
+            filename: `${jsDir}/[name].js`
+          },
+          optimization: {
+            minimize: false,
+            usedExports: true,
+            splitChunks: {
+              chunks (chunk) {
+                return !['files-exempt-from-chunking'].includes(chunk.name);
+              }
+            }
+          },
+          module: {
+            rules: [{
+              test: /\.js$/,
+              exclude: /@babel(?:\/|\\{1,2})runtime|core-js/,
+              use: {
+                loader: 'babel-loader',
+                options: {
+                  presets: [
+                    [
+                      '@babel/preset-env',
+                      {
+                        targets: {
+                          browsers: ['last 2 versions']
+                        },
+                        useBuiltIns: 'entry',
+                        corejs: 3
+                      }
+                    ]  
+                  ]
+                }
+              }
+            }]
+          },
         }),
-        bro({
-          transform: [
-            babelify.configure({ presets: ['@babel/preset-env'] }),
-            ['uglifyify', { global: true }]
+        webpack({
+          output: {
+            filename: `${jsDir}/[name].[hash].js`
+          },
+          optimization: {
+            usedExports: true,
+            splitChunks: {
+              chunks (chunk) {
+                return !['files-exempt-from-chunking'].includes(chunk.name);
+              }
+            }
+          },
+          module: {
+            rules: [{
+              test: /\.js$/,
+              use: {
+                loader: 'babel-loader',
+                options: {
+                  presets: [
+                    [
+                      '@babel/preset-env',
+                      {
+                        targets: {
+                          browsers: ['last 2 versions']
+                        },
+                        useBuiltIns: 'entry',
+                        corejs: 3
+                      }
+                    ]  
+                  ]
+                }
+              }
+            }]
+          },
+          plugins: [
+            new ManifestPlugin({
+              basePath: 'js/'
+            })
           ]
         })
       )
     )
-    .pipe(gulpif(dev, dest(`./web/${jsDir}`), dest(`${buildDir}/web/${jsDir}`)));
+    .pipe(gulpif(dev, dest(`./web`), dest(`${buildDir}/web`)));
+}
+
+function revupdate() {
+  // Replaces the js filenames in the layout template with the filename revisions in the Webpack manifest (cache busting)
+
+  return src([
+    `${buildDir}/web/manifest.json`,
+    `${buildDir}/templates/**/*.html`
+    ])
+    .pipe(revCollector({
+      replaceReved: true,
+      revSuffix: '\\.[0-9a-f]*'
+    }))
+    .pipe(dest(`${buildDir}/templates`));
 }
 
 function files() {
@@ -106,16 +193,8 @@ function filerev() {
     .pipe(dest('.'));
 }
 
-function revupdate() {
-  return src(['rev-manifest.json', `${buildDir}/**/_layout*([A-Za-z0-9]).html`])
-    .pipe(revCollector({
-      replaceReved: true
-    }))
-    .pipe(dest(buildDir));
-}
-
 function inline() {
-  return src(`${buildDir}/templates/_layout*([A-Za-z0-9]).html`)
+  return src(`${buildDir}/templates/_layout*([\-A-Za-z0-9]).html`)
     .pipe(
       processhtml({
         commentMarker: 'process',
@@ -150,7 +229,6 @@ exports.default = series(
   clean,
   parallel(js, css),
   files,
-  filerev,
   revupdate,
   inline
 );
