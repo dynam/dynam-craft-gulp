@@ -14,3 +14,5 @@
 /.publish
 /config/project.yaml
 /private
+/.yarn
+/.pnp.js
