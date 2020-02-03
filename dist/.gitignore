@@ -1,11 +1,10 @@
 /.env
 /.idea
-/artwork
 *.swp
 *.swo
 /web/assets
 /node_modules
 .DS_Store
-/.tmp
-/.publish
+/storage
 /config/project.yaml
+/private
