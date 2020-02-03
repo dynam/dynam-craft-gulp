@@ -1,0 +1,38 @@
+@mixin breakpoint($a, $b: null) {
+  @if $b == "null" {
+    @media only screen and (min-width: $a) and (max-width: $b) {
+      @content;
+    }
+  }
+  @else {
+    @media only screen and (min-width: $a) {
+      @content;
+    }
+  }
+}
+
+@mixin tablet() {
+	@include breakpoint(35em) {
+		@content;
+	}
+}
+
+@mixin desktop() {
+	@include breakpoint(60em) {
+		@content;
+	}
+}
+
+@mixin large() {
+	@include breakpoint(85em) {
+		@content;
+	}
+}
+
+@mixin largest() {
+	@include breakpoint(100em) {
+		@content;
+	}
+}
+
+
