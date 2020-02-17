@@ -135,10 +135,3 @@ figure {
   padding: .5em .75em;
 }
 
-@include tablet {
-  .button,
-  [type=submit] {
-    font-size: 1.75em;
-    border: 5px solid $base;
-  }
-}
